@@ -1,0 +1,1 @@
+Read @docs/PROJECT_BRIEF.md for the project spec and working rules before doing anything.
