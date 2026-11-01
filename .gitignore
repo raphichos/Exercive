@@ -4,6 +4,21 @@ docs/PROJECT_BRIEF.md
 # macOS junk files
 .DS_Store
 
+# Secrets: ignore every .env variant, but keep the committed template
+.env.*
+!.env.example
+
+# Node / frontend
+node_modules/
+*.tsbuildinfo
+.vite/
+.vercel/
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
