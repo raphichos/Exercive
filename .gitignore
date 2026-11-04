@@ -1,4 +1,9 @@
-# Private planning notes (local only, never pushed)
+# Private notes: every markdown file in docs/ stays local, except the shared ones re-included below.
+docs/*.md
+!docs/PROGRESS.md
+!docs/ARCHITECTURE.md
+# Listed last on purpose: git uses the last matching rule, so the brief stays ignored
+# even if someone later adds a broader re-include above.
 docs/PROJECT_BRIEF.md
 
 # macOS junk files
