@@ -8,9 +8,7 @@ import { fetchHealth } from './api/health';
 
 /** The three states of a request: still waiting, succeeded, or failed. */
 type ApiStatus =
-  | { kind: 'loading' }
-  | { kind: 'ok'; environment: string }
-  | { kind: 'error'; message: string };
+  { kind: 'loading' } | { kind: 'ok'; environment: string } | { kind: 'error'; message: string };
 
 /** Render the app name and the result of one call to `GET /api/health`. */
 export default function App() {
