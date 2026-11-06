@@ -1,0 +1,48 @@
+/*
+ * Global stylesheet: loads Tailwind and defines the "old money" design tokens.
+ *
+ * Tailwind v4 is configured in CSS, not in a tailwind.config.js file. Every variable in
+ * `@theme` becomes a utility class: `--color-surface` gives `bg-surface`, `text-surface`,
+ * `border-surface` and so on; `--font-serif` gives `font-serif`.
+ *
+ * Colour names describe a role (accent, danger), not a hue (brass, oxblood). The optional
+ * light theme can then swap the values without renaming a single class in the components.
+ */
+@import 'tailwindcss';
+
+@theme {
+  /* Drop Tailwind's default palette (blue-500 etc.) so only our tokens exist. A stray
+     off-palette colour then fails to build a class instead of slipping into the UI. */
+  --color-*: initial;
+
+  --color-canvas: #0d0d0f; /* page background */
+  --color-surface: #17171a; /* cards, panels, empty calendar days */
+  --color-line: #2a2a2e; /* borders and thin rules */
+  --color-ink: #ede6d6; /* main text (ivory) */
+  --color-muted: #9a958a; /* secondary text */
+  --color-accent: #b08d57; /* brass: active states, progress, trained days. Use sparingly. */
+  /* Oxblood is too dark to read as text on canvas (about 1.7:1, WCAG AA needs 4.5:1).
+     Use it as a background behind ink text (about 9:1), e.g. a destructive button. */
+  --color-danger: #6e1f24;
+
+  /* The web fonts get loaded in the next task; until then the fallbacks are used. */
+  --font-serif: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  :root {
+    /* Tell the browser the page is dark, so scrollbars and form controls match. */
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-serif;
+  }
+}
