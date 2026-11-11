@@ -31,11 +31,27 @@ export default function App() {
   }, []);
 
   return (
-    <main>
-      <h1>Exercive</h1>
-      {apiStatus.kind === 'loading' && <p>Checking the API…</p>}
-      {apiStatus.kind === 'ok' && <p>API: ok ({apiStatus.environment})</p>}
-      {apiStatus.kind === 'error' && <p>API unreachable: {apiStatus.message}</p>}
+    <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-6 py-16">
+      <p className="text-xs tracking-[0.2em] text-muted uppercase">Workout planner</p>
+      <h1 className="mt-3 text-5xl font-medium">Exercive</h1>
+      <hr className="my-8 border-line" />
+
+      {/* aria-live: screen readers announce the text when the status changes. */}
+      <section aria-live="polite" className="rounded-sm border border-line bg-surface p-5">
+        <h2 className="font-sans text-xs tracking-[0.2em] text-muted uppercase">API status</h2>
+        {apiStatus.kind === 'loading' && <p className="mt-2 text-muted">Checking the API…</p>}
+        {apiStatus.kind === 'ok' && (
+          <p className="mt-2 flex items-center gap-2">
+            <span aria-hidden="true" className="size-2 rounded-full bg-accent" />
+            Connected ({apiStatus.environment})
+          </p>
+        )}
+        {apiStatus.kind === 'error' && (
+          <p className="mt-2 rounded-sm bg-danger px-3 py-2">
+            API unreachable: {apiStatus.message}
+          </p>
+        )}
+      </section>
     </main>
   );
 }

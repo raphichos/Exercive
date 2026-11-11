@@ -9,6 +9,10 @@
  * light theme can then swap the values without renaming a single class in the components.
  */
 @import 'tailwindcss';
+/* Self-hosted variable fonts (one file covers every weight). They ship with the app,
+   so visitors' browsers never contact Google and the fonts still work offline (PWA). */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/cormorant-garamond';
 
 @theme {
   /* Drop Tailwind's default palette (blue-500 etc.) so only our tokens exist. A stray
@@ -25,9 +29,10 @@
      Use it as a background behind ink text (about 9:1), e.g. a destructive button. */
   --color-danger: #6e1f24;
 
-  /* The web fonts get loaded in the next task; until then the fallbacks are used. */
-  --font-serif: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Fontsource registers the variable fonts under these exact names ("… Variable").
+     Writing plain 'Inter' would quietly skip our font and use the fallback instead. */
+  --font-serif: 'Cormorant Garamond Variable', 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 @layer base {
