@@ -1,6 +1,6 @@
 # Progress
 
-## 2026-10-30: Phase 0 (in progress, last updated 2026-11-04)
+## 2026-10-30: Phase 0 (in progress, last updated 2026-11-10)
 
 ### Built
 - Repo setup: extended `.gitignore`, pinned Node 24 and Python 3.12.
@@ -10,7 +10,10 @@
 - First test and lint run: 5 tests passed, ruff clean, on Python 3.12 in a temporary environment.
 - Frontend skeleton: Vite, React and strict TypeScript, an `/api` dev proxy to the backend, a typed client for `GET /api/health`, and an `App` that shows the API status.
 - Prettier for the frontend: `npm run format` and `npm run format:check`, plus format on save in VS Code (`.vscode/settings.json`). The folder was first committed as `vscode/` (no dot), which VS Code ignores; renamed on 2026-11-06.
-- Tailwind CSS v4 through its Vite plugin, with the "old money" colour and font tokens in `frontend/src/styles/index.css`. Nothing is styled with it yet.
+- Tailwind CSS v4 through its Vite plugin, with the "old money" colour and font tokens in `frontend/src/styles/index.css`.
+- Self-hosted web fonts (Inter and Cormorant Garamond, variable versions) through Fontsource, and the first styled page: the health-check card in `App.tsx` uses the tokens (brass dot when connected, oxblood box on error, `aria-live` so screen readers announce the change).
+- Backend tests and ruff now run on the local uv install: 5 tests passed, ruff clean.
+- Frontend branch merged to `main` as PR #2 (2026-11-10). Work continues on `docs/phase-0`.
 
 ### Key decisions
 - **uv for Python tooling:** one tool manages the Python version, dependencies and lockfile, and runs 3.12 alongside other Python versions on the same machine.
@@ -25,11 +28,15 @@
 - **Colour tokens are named by role, not hue** (`accent`, not `brass`): the optional light theme can swap values without renaming classes. Tailwind's default palette is removed so off-palette colours can't creep in.
 - **Oxblood (`danger`) is a background colour only:** as text on the dark background it's about 1.7:1 contrast, below WCAG AA's 4.5:1. Ivory text on oxblood is about 9:1.
 
+- **Fonts are self-hosted with Fontsource, not loaded from Google Fonts:** visitors' browsers never contact Google, the fonts still work offline (needed for the PWA), and the versions are pinned in the lockfile. Variable versions, so one file covers every weight, and the browser only downloads the character-set files the page uses (`unicode-range`).
+- **Font tokens use Fontsource's registered names** (`'Inter Variable'`, `'Cormorant Garamond Variable'`). Plain `'Inter'` would silently fall back to the backup font.
+- **Fonts are `dependencies`, pinned to exact 5.3.0:** the font files ship to the browser, like React. Pinned because Fontsource's version number describes the npm package, not the typeface: a patch release can refresh the font files, change letter widths and make text wrap differently, with no code change on our side.
+- **Merge commits, and delete the branch after merging:** the commits are already in `main`, so deleting only removes the label. Optional: turn on "Automatically delete head branches" in the GitHub repo settings.
+
 ### Left to do
-- Run the backend setup and tests on a local uv install (the first run used a temporary one).
-- Load the web fonts (Cormorant Garamond, Inter) and style the first page with the tokens. **Next task.**
-- README: what the project is and how to run it locally.
-- Architecture diagram and notes in `docs/`.
+- README: what the project is and how to run it locally. **Next task.**
+- Architecture diagram and notes in `docs/ARCHITECTURE.md`.
+- Final Phase 0 entry in this file, then your review.
 
 ### What I learned
 **Project setup**
@@ -72,4 +79,9 @@
 - **Each project has its own copy of a package** in `node_modules/`, installed from the lockfile. What's installed globally on someone's machine doesn't matter.
 - **Utility-first CSS (Tailwind):** small single-purpose classes on the element (`bg-surface p-4`) instead of hand-written CSS rules. Only the classes actually used end up in the CSS file.
 - **Exit codes and CI:** 0 means success, anything else means failure, and CI only reads that number. A check that exits 0 without checking anything is a silent false pass, so make every new check fail once on purpose.
+- **Pinning:** writing an exact version with no `^` (`"5.3.0"`), so npm can never move it on its own. If you edit `package.json` by hand, run `npm install` afterwards so the lockfile's copy of the range matches.
+- **Diff:** the lines that changed since your last commit (`-` removed, `+` added). A brand-new dependency shows only `+` lines, because git never saw an earlier version. Git opens long output in a pager: press `q` to leave, or use `git --no-pager`.
+- **Virtual environment label `(exercive-backend)` in the terminal:** the Python environment is active. It comes from `name` in `pyproject.toml`, and VS Code switches it on automatically. `deactivate` turns it off for that terminal.
+- **`@font-face` and `unicode-range`:** tell the browser where a font file is and which characters it covers, so it only downloads the files the page needs.
+- **Merged branches:** merging doesn't delete a branch on GitHub. Deleting it is safe and normal (`git branch -d` refuses if the work isn't merged).
 - **CI (continuous integration):** a fresh cloud machine that installs from the lockfile and runs your checks on every push and PR. Built in Phase 9.
