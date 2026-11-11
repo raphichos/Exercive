@@ -1,6 +1,6 @@
 # Progress
 
-## 2026-10-30: Phase 0 (in progress)
+## 2026-10-30: Phase 0 (in progress, last updated 2026-11-04)
 
 ### Built
 - Repo setup: extended `.gitignore`, pinned Node 24 and Python 3.12.
@@ -8,6 +8,9 @@
 - Empty `models`, `services` and `seed` packages for later phases.
 - Backend tests with pytest, and linting and formatting with ruff.
 - First test and lint run: 5 tests passed, ruff clean, on Python 3.12 in a temporary environment.
+- Frontend skeleton: Vite, React and strict TypeScript, an `/api` dev proxy to the backend, a typed client for `GET /api/health`, and an `App` that shows the API status.
+- Prettier for the frontend: `npm run format` and `npm run format:check`, plus format on save in VS Code (`.vscode/settings.json`). The folder was first committed as `vscode/` (no dot), which VS Code ignores; renamed on 2026-11-06.
+- Tailwind CSS v4 through its Vite plugin, with the "old money" colour and font tokens in `frontend/src/styles/index.css`. Nothing is styled with it yet.
 
 ### Key decisions
 - **uv for Python tooling:** one tool manages the Python version, dependencies and lockfile, and runs 3.12 alongside other Python versions on the same machine.
@@ -15,10 +18,16 @@
 - **Ruff enforces docstrings and type hints:** the project rule is checked automatically, not just by review.
 - **`httpx2` instead of `httpx` for tests:** Starlette deprecates `httpx` for its test client.
 - **`db.py` and Alembic moved to Phase 1:** nothing uses a database yet.
+- **Prettier pinned to an exact version (no `^`):** even minor releases can change formatting, so two developers on different 3.x versions would keep reformatting each other's files.
+- **Prettier runs on `.` with a `.prettierignore`:** everything is checked by default, and exclusions (the lockfile, `dist/`) live in one place. Listing only `src/` would have skipped the config files.
+- **VS Code formats only frontend file types with Prettier:** `prettier.requireConfig` keeps it out of files without a config, such as the root README. The Ruff extension for Python gets added at Phase 1.
+- **Tailwind is a devDependency, pinned to exact 4.3.3:** it runs at build time and only its CSS output reaches the browser. 4.3.4 and 4.3.5 were days old when we installed, and a `^` range had already pulled in 4.3.5 once, so upgrades are now a deliberate choice.
+- **Colour tokens are named by role, not hue** (`accent`, not `brass`): the optional light theme can swap values without renaming classes. Tailwind's default palette is removed so off-palette colours can't creep in.
+- **Oxblood (`danger`) is a background colour only:** as text on the dark background it's about 1.7:1 contrast, below WCAG AA's 4.5:1. Ivory text on oxblood is about 9:1.
 
 ### Left to do
 - Run the backend setup and tests on a local uv install (the first run used a temporary one).
-- Frontend skeleton: Vite, React, TypeScript, Tailwind theme tokens, prettier, and a page that calls `/api/health` through the proxy.
+- Load the web fonts (Cormorant Garamond, Inter) and style the first page with the tokens. **Next task.**
 - README: what the project is and how to run it locally.
 - Architecture diagram and notes in `docs/`.
 
@@ -51,3 +60,16 @@
 - **`.gitignore`:** lists files git should never track.
 - **Staging by name:** `git add <file>` stages only that file, while `git add .` stages everything, including files you didn't mean to commit.
 - **`.vscode/`:** where VS Code keeps project settings. It can be created by the editor rather than by a command you ran.
+
+**Frontend tooling**
+- **`package.json`:** the frontend's manifest: project info, scripts (named command shortcuts) and dependencies. The frontend's version of `pyproject.toml`.
+- **`dependencies` vs `devDependencies`:** the test is whether the code runs in the user's browser. React does; Prettier and TypeScript only run on a developer's machine or in CI.
+- **`^` vs an exact version:** `^19.3.1` allows any newer 19.x; `3.9.10` allows only that version.
+- **Lockfile (`package-lock.json`):** records the exact version and an integrity fingerprint of every installed package, so every machine installs identical code. That's the reason to commit it.
+- **Formatter vs linter:** a formatter (Prettier, `ruff format`) changes how code looks. A linter (`ruff check`) reports likely bugs and rule breaks.
+- **npm acts on the current folder:** running `npm install` from the repo root created a stray `package.json` there.
+- **A range is permission, the lockfile is the record:** `^4.3.3` lets npm pick any newer 4.x, so it installed 4.3.5. `-E` saves an exact version; `-D` puts a package in `devDependencies`.
+- **Each project has its own copy of a package** in `node_modules/`, installed from the lockfile. What's installed globally on someone's machine doesn't matter.
+- **Utility-first CSS (Tailwind):** small single-purpose classes on the element (`bg-surface p-4`) instead of hand-written CSS rules. Only the classes actually used end up in the CSS file.
+- **Exit codes and CI:** 0 means success, anything else means failure, and CI only reads that number. A check that exits 0 without checking anything is a silent false pass, so make every new check fail once on purpose.
+- **CI (continuous integration):** a fresh cloud machine that installs from the lockfile and runs your checks on every push and PR. Built in Phase 9.
