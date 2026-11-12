@@ -1,6 +1,6 @@
 # Progress
 
-## 2026-10-30: Phase 0 (in progress, last updated 2026-11-04)
+## 2026-10-30 to 2026-11-12: Phase 0, project setup (complete, waiting for review)
 
 ### Built
 - Repo setup: extended `.gitignore`, pinned Node 24 and Python 3.12.
@@ -10,7 +10,12 @@
 - First test and lint run: 5 tests passed, ruff clean, on Python 3.12 in a temporary environment.
 - Frontend skeleton: Vite, React and strict TypeScript, an `/api` dev proxy to the backend, a typed client for `GET /api/health`, and an `App` that shows the API status.
 - Prettier for the frontend: `npm run format` and `npm run format:check`, plus format on save in VS Code (`.vscode/settings.json`). The folder was first committed as `vscode/` (no dot), which VS Code ignores; renamed on 2026-11-06.
-- Tailwind CSS v4 through its Vite plugin, with the "old money" colour and font tokens in `frontend/src/styles/index.css`. Nothing is styled with it yet.
+- Tailwind CSS v4 through its Vite plugin, with the "old money" colour and font tokens in `frontend/src/styles/index.css`.
+- Self-hosted web fonts (Inter and Cormorant Garamond, variable versions) through Fontsource, and the first styled page: the health-check card in `App.tsx` uses the tokens (brass dot when connected, oxblood box on error, `aria-live` so screen readers announce the change).
+- Backend tests and ruff now run on the local uv install: 5 tests passed, ruff clean.
+- Frontend branch merged to `main` as PR #2 (2026-11-10). The remaining docs work happened on `docs/phase-0`.
+- `README.md`: what the project is, planned features, stack, folder layout, local setup for macOS and Windows, and the check commands. The commands were run before being written down; the Windows steps are untested.
+- `docs/ARCHITECTURE.md`: system diagram (browser, Vite dev server, FastAPI, planned database), a folder-by-folder map of what is built and what is planned, a step-by-step trace of `GET /api/health`, and the production plan.
 
 ### Key decisions
 - **uv for Python tooling:** one tool manages the Python version, dependencies and lockfile, and runs 3.12 alongside other Python versions on the same machine.
@@ -25,11 +30,19 @@
 - **Colour tokens are named by role, not hue** (`accent`, not `brass`): the optional light theme can swap values without renaming classes. Tailwind's default palette is removed so off-palette colours can't creep in.
 - **Oxblood (`danger`) is a background colour only:** as text on the dark background it's about 1.7:1 contrast, below WCAG AA's 4.5:1. Ivory text on oxblood is about 9:1.
 
+- **Fonts are self-hosted with Fontsource, not loaded from Google Fonts:** visitors' browsers never contact Google, the fonts still work offline (needed for the PWA), and the versions are pinned in the lockfile. Variable versions, so one file covers every weight, and the browser only downloads the character-set files the page uses (`unicode-range`).
+- **Font tokens use Fontsource's registered names** (`'Inter Variable'`, `'Cormorant Garamond Variable'`). Plain `'Inter'` would silently fall back to the backup font.
+- **Fonts are `dependencies`, pinned to exact 5.3.0:** the font files ship to the browser, like React. Pinned because Fontsource's version number describes the npm package, not the typeface: a patch release can refresh the font files, change letter widths and make text wrap differently, with no code change on our side.
+- **Diagrams are written in Mermaid inside the Markdown:** GitHub draws them, and they live in the repo as text, so a change to the design shows up as a normal diff. Unbuilt parts are drawn dashed or marked "planned", so the doc never claims more than exists.
+- **`docs/ARCHITECTURE.md` is public, like this file:** it is re-included in `.gitignore`. Private learning notes stay out of it.
+- **README uses `npm ci`, not `npm install`, for first setup:** `npm ci` installs exactly what the lockfile records and fails if `package.json` and the lockfile disagree, so setup can't silently change the lockfile.
+- **Windows setup is documented, a `.gitattributes` file is not (yet):** Git for Windows defaults to CRLF line endings on checkout, which would make `npm run format:check` fail on every file. Only the macOS developer exists today and CI will run on Linux, so it waits until a Windows contributor appears. The fix is one line, `* text=auto eol=lf`, rather than telling Prettier to accept mixed endings.
+- **Merge commits, and delete the branch after merging:** the commits are already in `main`, so deleting only removes the label. Optional: turn on "Automatically delete head branches" in the GitHub repo settings.
+
 ### Left to do
-- Run the backend setup and tests on a local uv install (the first run used a temporary one).
-- Load the web fonts (Cormorant Garamond, Inter) and style the first page with the tokens. **Next task.**
-- README: what the project is and how to run it locally.
-- Architecture diagram and notes in `docs/`.
+- Your review of Phase 0, then merge `docs/phase-0`.
+- **Phase 1** (suggested branch `feat/database`): `db.py`, SQLAlchemy models, Alembic migrations, seed script for the exercise dataset (check licences first), and a DBeaver walkthrough. Add the Ruff extension for VS Code at the same time.
+- Deferred on purpose: `.gitattributes` for Windows line endings (see decisions), the production `/api` proxy on the frontend host (Phase 9), and the optional GitHub setting "Automatically delete head branches".
 
 ### What I learned
 **Project setup**
@@ -72,4 +85,12 @@
 - **Each project has its own copy of a package** in `node_modules/`, installed from the lockfile. What's installed globally on someone's machine doesn't matter.
 - **Utility-first CSS (Tailwind):** small single-purpose classes on the element (`bg-surface p-4`) instead of hand-written CSS rules. Only the classes actually used end up in the CSS file.
 - **Exit codes and CI:** 0 means success, anything else means failure, and CI only reads that number. A check that exits 0 without checking anything is a silent false pass, so make every new check fail once on purpose.
+- **Pinning:** writing an exact version with no `^` (`"5.3.0"`), so npm can never move it on its own. If you edit `package.json` by hand, run `npm install` afterwards so the lockfile's copy of the range matches.
+- **Diff:** the lines that changed since your last commit (`-` removed, `+` added). A brand-new dependency shows only `+` lines, because git never saw an earlier version. Git opens long output in a pager: press `q` to leave, or use `git --no-pager`.
+- **Virtual environment label `(exercive-backend)` in the terminal:** the Python environment is active. It comes from `name` in `pyproject.toml`, and VS Code switches it on automatically. `deactivate` turns it off for that terminal.
+- **`@font-face` and `unicode-range`:** tell the browser where a font file is and which characters it covers, so it only downloads the files the page needs.
+- **Merged branches:** merging doesn't delete a branch on GitHub. Deleting it is safe and normal (`git branch -d` refuses if the work isn't merged).
+- **`npm install` vs `npm ci`:** `package.json` is the manifest (allowed version ranges) and the lockfile is the record (chosen versions). `npm install` reconciles the two and may rewrite the lockfile: when they are out of sync, when a package is added, or when npm versions differ. If the lockfile already satisfies `package.json`, it does not upgrade anything. `npm ci` treats the lockfile as the truth: it installs exactly that, errors on a mismatch, and never writes to it.
+- **Four parts of a URL:** in `http://localhost:5173/api/health`, the scheme (`http`) is how to talk, the host (`localhost`) is which machine, the port (`5173`) is which program on it, and the path (`/api/health`) is what is being asked for. The Vite proxy decides by the path alone: forward if it starts with `/api`.
+- **The dev server answers unknown paths with the app's HTML:** `GET /health` on port 5173 returns status 200 and `index.html`, not a 404, because Vite serves a single-page app. A mistyped API path in the frontend therefore fails when parsing JSON, not with an error status.
 - **CI (continuous integration):** a fresh cloud machine that installs from the lockfile and runs your checks on every push and PR. Built in Phase 9.
