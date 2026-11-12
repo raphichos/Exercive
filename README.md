@@ -35,6 +35,8 @@ frontend/   React app (src/), Vite config, Node dependencies (package.json, pack
 docs/       Progress log and architecture notes
 ```
 
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for a diagram of how the pieces fit together.
+
 In development, two servers run side by side. The browser only talks to the frontend
 (port 5173), and the frontend's dev server forwards every request starting with `/api` to the
 backend (port 8000).
