@@ -1,6 +1,30 @@
 # Progress
 
-## 2026-10-30 to 2026-11-12: Phase 0, project setup (complete, waiting for review)
+## 2026-11-13 onwards: Phase 1, database (in progress, branch `feat/database`)
+
+### Built
+- SQLAlchemy 2.1.8 added to the backend.
+- `database_url` setting in `backend/app/config.py`, documented as `DATABASE_URL` in `backend/.env.example`. It defaults to a SQLite file at `backend/exercive.db` (already in `.gitignore`).
+- `backend/app/db.py`: the engine, the `SessionLocal` session factory, the `Base` class for models, and `get_db`, the per-request session dependency (written by me).
+
+### Key decisions
+- **The SQLite default path is absolute, built from `BACKEND_DIR`:** a relative path like `sqlite:///./exercive.db` depends on the folder you start the server from, so running from the repo root would silently create a second, empty database.
+- **`check_same_thread=False` only for SQLite:** FastAPI runs sync routes on a pool of worker threads, and SQLite by default refuses a connection used from a different thread than the one that opened it. PostgreSQL has no such rule, so the option is only passed when the URL starts with `sqlite`.
+- **`get_db` creates the session before `try`, and closes it in `finally`:** if creating it failed inside the `try`, `finally` would hit an undefined variable. `finally` is the only place guaranteed to run when the route raises.
+
+### Left to do
+- First models (User, Muscle, Equipment, Exercise, ExerciseMuscle), then Alembic migrations, the seed script (check dataset licences first), and the DBeaver walkthrough. Add the Ruff extension for VS Code.
+
+### What I learned
+- **Database:** where the app keeps data permanently, so it survives a restart.
+- **SQL:** the language databases understand (`SELECT name FROM exercises WHERE muscle = 'chest'`).
+- **SQLite vs PostgreSQL:** SQLite is a whole database in one file with nothing to install, good for local dev. PostgreSQL runs as a separate server and handles many users at once, used in production.
+- **SQLAlchemy (an ORM):** a Python library that turns Python into SQL. The same code works on SQLite and PostgreSQL, so switching only means changing `DATABASE_URL`.
+- **Engine vs session:** the engine is the phone line to the database, set up once. A session is one phone call, opened per request and always hung up afterwards.
+- **Thread:** a worker inside a program. Several threads let FastAPI handle several requests at once.
+- **`yield` with `try/finally`:** `yield` hands a value out and pauses. If the route crashes, the error comes out at the `yield`, so code after it is skipped; only `finally` is guaranteed to run.
+
+## 2026-10-30 to 2026-11-12: Phase 0, project setup (complete, merged as PR #3)
 
 ### Built
 - Repo setup: extended `.gitignore`, pinned Node 24 and Python 3.12.
@@ -40,7 +64,7 @@
 - **Merge commits, and delete the branch after merging:** the commits are already in `main`, so deleting only removes the label. Optional: turn on "Automatically delete head branches" in the GitHub repo settings.
 
 ### Left to do
-- Your review of Phase 0, then merge `docs/phase-0`.
+- ~~Your review of Phase 0, then merge `docs/phase-0`.~~ Done: merged as PR #3.
 - **Phase 1** (suggested branch `feat/database`): `db.py`, SQLAlchemy models, Alembic migrations, seed script for the exercise dataset (check licences first), and a DBeaver walkthrough. Add the Ruff extension for VS Code at the same time.
 - Deferred on purpose: `.gitattributes` for Windows line endings (see decisions), the production `/api` proxy on the frontend host (Phase 9), and the optional GitHub setting "Automatically delete head branches".
 

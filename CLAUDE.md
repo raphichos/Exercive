@@ -9,3 +9,11 @@ Read docs/PROGRESS.md (if it exists) at the start of every session to see where 
   code are the exception.
 - Never run git commit or git push. I do that myself.
 - Never remove docs/PROJECT_BRIEF.md from .gitignore.
+
+## End of every session
+- When I wrap up (build or learning session), ask whether my next session will be a
+  build session (build while learning) or a learning session.
+- Then write the opening prompt for that session in one code block, ready for me to save
+  in my notes and paste into a new chat. Base it on where we actually stopped: for a build
+  session, the next task, its branch and the related LEARNING_PLAN.md module; for a learning
+  session, the module and section to start from, noting any jump from the agreed order.
