@@ -20,6 +20,8 @@ class Settings(BaseSettings):
 
     app_name: str = "Exercive API"
     environment: Literal["development", "test", "production"] = "development"
+    # Local dev defaults to a SQLite file in backend/; production sets a PostgreSQL URL.
+    database_url: str = f"sqlite:///{BACKEND_DIR / 'exercive.db'}"
 
 
 @lru_cache
