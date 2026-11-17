@@ -32,7 +32,6 @@ def get_db() -> Iterator[Session]:
 
     Used as a FastAPI dependency: `db: Annotated[Session, Depends(get_db)]`.
     """
-
     db = SessionLocal()
     try:
         yield db
