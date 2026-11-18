@@ -6,14 +6,23 @@
 - SQLAlchemy 2.1.8 added to the backend.
 - `database_url` setting in `backend/app/config.py`, documented as `DATABASE_URL` in `backend/.env.example`. It defaults to a SQLite file at `backend/exercive.db` (already in `.gitignore`).
 - `backend/app/db.py`: the engine, the `SessionLocal` session factory, the `Base` class for models, and `get_db`, the per-request session dependency (written by me).
+- First models, written by me: `Muscle`, `Equipment` and `Exercise` (with a foreign key to `equipment`, `is_compound` and `is_main_lift`), registered in `backend/app/models/__init__.py`.
+- SQLite now enforces foreign keys: engines are built by `create_db_engine()` in `db.py`, and `tests/test_db.py` (written by me) proves a bad `equipment_id` is refused. 6 tests pass.
 
 ### Key decisions
 - **The SQLite default path is absolute, built from `BACKEND_DIR`:** a relative path like `sqlite:///./exercive.db` depends on the folder you start the server from, so running from the repo root would silently create a second, empty database.
 - **`check_same_thread=False` only for SQLite:** FastAPI runs sync routes on a pool of worker threads, and SQLite by default refuses a connection used from a different thread than the one that opened it. PostgreSQL has no such rule, so the option is only passed when the URL starts with `sqlite`.
 - **`get_db` creates the session before `try`, and closes it in `finally`:** if creating it failed inside the `try`, `finally` would hit an undefined variable. `finally` is the only place guaranteed to run when the route raises.
+- **Smaller commits from now on:** one model or one fix per commit, to build faster with less to review each time.
+- **`name` is unique on muscles, equipment and exercises:** the dataset repeats names like "chest" hundreds of times, so without `UNIQUE` a seed script would silently create duplicates. With it, the database refuses them loudly and the seed has to "get or create".
+- **`Exercise.equipment_id` is required:** dataset exercises without equipment will be saved as "bodyweight", so equipment filters never deal with empty values.
+- **`is_compound` has no default, `is_main_lift` defaults to `False`:** a default is only safe when it is right for most rows. A wrong `False` on `is_compound` would silently break exercise ordering in Phase 5.
+- **`is_main_lift` lives on `Exercise`, not per muscle:** simpler, and a main lift can show first under every muscle it mainly works.
+- **SQLite foreign keys are switched on for every connection:** SQLite ignores them by default, PostgreSQL never does, so bad links would pass locally and fail in production. Engines go through `create_db_engine()` so tests get the same setup as the app.
 
 ### Left to do
-- First models (User, Muscle, Equipment, Exercise, ExerciseMuscle), then Alembic migrations, the seed script (check dataset licences first), and the DBeaver walkthrough. Add the Ruff extension for VS Code.
+- Next: the `ExerciseMuscle` join table (primary/secondary role) and `relationship()`, then `User`, Alembic setup, the first migration, the seed script (check dataset licences first), and the DBeaver walkthrough. Add the Ruff extension for VS Code.
+- Open check question: the difference between `mapped_column` and `mapped_column()`, and why the first one failed silently.
 
 ### What I learned
 - **Database:** where the app keeps data permanently, so it survives a restart.
@@ -23,6 +32,12 @@
 - **Engine vs session:** the engine is the phone line to the database, set up once. A session is one phone call, opened per request and always hung up afterwards.
 - **Thread:** a worker inside a program. Several threads let FastAPI handle several requests at once.
 - **`yield` with `try/finally`:** `yield` hands a value out and pauses. If the route crashes, the error comes out at the `yield`, so code after it is skipped; only `finally` is guaranteed to run.
+- **A model is a table written as a class:** each `Mapped[...]` attribute is a column. `Mapped[str]` means `NOT NULL`, `Mapped[str | None]` means it can be empty.
+- **Foreign key:** a column holding another table's `id`, which the database checks. `ForeignKey("equipment.id")` uses the table name, not the class name.
+- **Docstring vs comment:** a docstring is a triple-quoted string on the first line of a module, class or function. Python keeps it; a `#` comment is thrown away.
+- **`mapped_column` vs `mapped_column()`:** without parentheses you store the function instead of calling it, and SQLAlchemy silently skips the column. Print the generated SQL to check what a model really produced.
+- **A test must be able to fail for the reason it names:** my first foreign key test passed because `name` was missing, not because of the foreign key. Make everything else valid, then break the fix on purpose and see the test go red.
+- **Required fields:** a field must be given only if it has no default and no automatic value. `id` is filled in by the database, `is_main_lift` by its default.
 
 ## 2026-10-30 to 2026-11-12: Phase 0, project setup (complete, merged as PR #3)
 
