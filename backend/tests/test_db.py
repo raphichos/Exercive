@@ -1,4 +1,4 @@
-"""Test proving a bad equipment_id gets rejected."""
+"""Tests for the database setup in app.db."""
 
 import pytest
 from sqlalchemy.exc import IntegrityError
