@@ -6,6 +6,7 @@ this file is a table Alembic never sees.
 """
 
 from app.models.equipment import Equipment
+from app.models.exercise import Exercise
 from app.models.muscle import Muscle
 
-__all__ = ["Equipment", "Muscle"]
+__all__ = ["Equipment", "Exercise", "Muscle"]
